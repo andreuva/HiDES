@@ -27,7 +27,7 @@
 ; READ IN PARAMETERS
 ; ------------------
 ; OPEN THE INPUT DATA FILE
-filename = 'datain_2d.dat'
+filename = 'parameter_files/datain_2d.dat'
 openr,unit,/get_lun,filename
 strd=''   ; declare strd as a string variable for later use
 
