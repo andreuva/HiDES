@@ -4,11 +4,13 @@
 #     Author: Andres Vicente Arevalo   Date: 23-03-2020                 #
 #########################################################################
 
-# import used global variables
-import introut as ic 
-import grid
 # import used modules
 import numpy as np
+
+# import used global variables
+import introut as ic 
+import grid as g
+
 
 # --------------------------------------------------------------------
 # 			read the initial parameters of the simulation
@@ -61,32 +63,13 @@ if (param.rain_flag=='yes' and param.itype!='gaussian'): print( 'WARNING: RAIN I
 # ---------------------------------------------------------------
 # 			calculate the grid based on the parameters
 # ---------------------------------------------------------------
-grid = grid.grid(param)
+grid = g.grid(param)
 # --------------------------------------------------------------
 #  				compute the initial conditions
 # --------------------------------------------------------------
-'''
-# initrout()   #the routine initrout sets up the initial condition.
+#the routine initrout sets up the initial condition.
+init_cond = ic.introut(param,grid)   
 
-# this calculates the initial values of the 'densities' for momentum and energy:
-Upxinit	= Uminit*vxinit
-Upzinit	= Uminit*vzinit
-Ueinit	= presinit/(gamm-1) + Uminit*(vxinit^2 + vzinit^2)/2
-
-# this calculates the sound speed array for the initial condition:
-csinit = np.sqrt(gamm*presinit/Uminit)
-
-#draw and store the initial conditions
-if plttype eq 'cutz' then begin
-  vv = sqrt(vxinit*vxinit + vzinit*vzinit)
-  drawing,Uminit[fix(npx/2),*],presinit[fix(npx/2),*],vv[fix(npx/2),*], zz, 0.0, 0.0
-endif else if plttype eq 'cutx' then begin
-  vv = sqrt(vxinit*vxinit + vzinit*vzinit)
-  drawing,Uminit[*,fix(npz/2)],presinit[*,fix(npz/2)],vv[*,fix(npz/2)], xx, 0.0, 0.0
-endif else begin
-  drawing_2d,Uminit,presinit,vxinit,vzinit,0.0,0.0,0.0
-endelse
-save,/VARIABLES, FILENAME = 'results/states/inital_conditions.sav'
-WRITE_PNG, 'results/plots/initial_conditions.png', TVRD(/TRUE)
-'''
-
+# plot and store the initial conditions
+init_cond.plot_ic(param,grid, save=True)
+init_cond.save_ic()

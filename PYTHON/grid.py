@@ -36,6 +36,5 @@ class grid():
 		# self.zz = np.linspace( param.z0 - self.dz/2, param.zf + self.dz/2, self.npz )
 
 		# compute the matrix grids of each dimension
-		# self.gridx = xx#(dblarr(self.npz)+1)
-		# self.gridz = (dblarr(self.npx)+1)#zz
+		self.gridx,self.gridz = np.meshgrid(self.xx, self.zz)
 		

@@ -4,10 +4,10 @@
 #########################################################################
 
 # -------------- GRID PARAMETERS ----------------------------------------------
-nintx = 15						# nintx number of intervals in the x direction
-nintz = 15						# nintz number of intervals in the z direction
-x0 = -5; xf = 10				# x0, xf      bounds of physical domain in the x direction
-z0 = -5; zf = 10				# z0, zf      bounds of physical domain in the z direction
+nintx = 32						# nintx number of intervals in the x direction
+nintz = 32						# nintz number of intervals in the z direction
+x0 = -3; xf = 3				# x0, xf      bounds of physical domain in the x direction
+z0 = -3; zf = 3				# z0, zf      bounds of physical domain in the z direction
 
 # ----------------- TIME, ITERATIONS AND PLOTS --------------------------------
 itmax = 1e6						# itmax maximum number of iterations
@@ -16,8 +16,8 @@ plt_cad = 5; str_cad = 1e4		# plot cadence, store cadence - cadence for output
 plt_type = 'contour'			# tipe of plot:   'cutx','cutz', 'contour' or 'color' 
 
 # ----------------- INITIAL AND BOUNDARI CONDITIONS ---------------------------
-itype = 'packet'				# itype   init. cond: (allow 20 spaces) type of initial condition betwen: 'sound wave', 'chladni', 'gaussian' 'shock' or 'packet'
-shape = 'discont'				# shape   init. cond: (allow 20 spaces) type 'gradient', 'discont' or nothing for the packet mode
+itype = 'sound wave'				# itype   init. cond: (allow 20 spaces) type of initial condition betwen: 'sound wave', 'chladni', 'gaussian' 'shock' or 'packet'
+shape = 'cosine'				# shape   init. cond: (allow 20 spaces) type 'gradient', 'discont' or nothing for the packet mode
 rain_flag = 0					# rain_flag  a flag to activate the 'rain' option
 rain_cad = 25					# rain_cad a estimate for the 'rain' cadence in relation with the iterations (integer usually from 1 to 100)
 track = 0 						# track             : (allow 20 spaces) for tracking the wave paquet along the z direction
