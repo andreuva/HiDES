@@ -11,7 +11,8 @@ import numpy as np
 import introut as ic 
 import grid as g
 from timestep import tstep
-
+import conversions as convers
+from boundary_conditions import boundc
 # --------------------------------------------------------------------
 # 			read the initial parameters of the simulation
 # --------------------------------------------------------------------
@@ -99,38 +100,39 @@ time = 0.
 while (itt < param.itmax and time < param.timef):
 
 #   CALCULATE FLUXES FROM DENSITIES ('fluxes' is the name of the subroutine) 
-#     fluxes,Um,Upx,Upz,Ue,    fmx,fmz,   fpxx,fpxz,fpzz,fpzx,  fex,fez
-    
+	fmx,fmz, fpxx,fpxz,fpzz,fpzx, fex,fez = convers.state_to_fluxes(Um,Upx,Upz,Ue)
+
 #   TIMESTEP 
 	dt=tstep(Um,Upx,Upz,cs, param, grid)
 	print(time)
 	if ((time+dt) > param.timef):
 		dt = param.timef-time
 
-# #   ADVANCE ONE TIMESTEP using the chosen numerical scheme 
+#   ADVANCE ONE TIMESTEP using the chosen numerical scheme 
 #     advance, dt, Um,Upx,Upz,Ue, fmx,fmz,   fpxx,fpxz,fpzz,fpzx,  fex,fez, Umn,Upxn,Upzn,Uen
 
-# #   BOUNDARY CONDITIONS 
-#     boundc,boundcond,'left',Umn    & boundc,boundcond,'right',Umn
-#     boundc,boundcond,'left',Uen    & boundc,boundcond,'right',Uen
-#     boundc,boundcond,'up',Umn      & boundc,boundcond,'down',Umn
-#     boundc,boundcond,'up',Uen      & boundc,boundcond,'down',Uen
-    
-#     boundc,boundcond,'left',Upxn   & boundc,boundcond,'right',Upxn
-#     boundc,boundcond,'left',Upzn   & boundc,boundcond,'right',Upzn
-#     boundc,boundcond,'up',Upxn     & boundc,boundcond,'down',Upxn
-#     boundc,boundcond,'up',Upzn     & boundc,boundcond,'down',Upzn       
+#   BOUNDARY CONDITIONS 
+	Umn = boundc('left',Umn);	Umn = boundc('right',Umn);
+	Uen = boundc('left',Uen);	Uen = boundc('right',Uen);
+	Umn = boundc('up',Umn);		Umn = boundc('down',Umn);
+	Uen = boundc('up',Uen);		Uen = boundc('down',Uen);
 
-# #   CALCULATE PRIMITIVE VARIABLES FROM THE DENSITIES    
-#     primitives, Umn,Upxn,Upzn,Uen, vxn,vzn,presn
+	Upxn = boundc('left',Upxn);	Upxn = boundc('right',Upxn);
+	Upzn = boundc('left',Upzn);	Upzn = boundc('right',Upzn);
+	Upxn = boundc('up',Upxn);	Upxn = boundc('down',Upxn);
+	Upzn = boundc('up',Upzn);	Upzn = boundc('down',Upzn);     
 
-# #   EXCHANGE NEW AND OLD VARIABLES
-#     Um = Umn & Upx = Upxn & Upz = Upzn & Ue = Uen & pres = presn  & vx = vxn  & vz = vzn 
-    
+#   CALCULATE PRIMITIVE VARIABLES FROM THE DENSITIES    
+	vxn,vzn,presn = convers.fluxes_to_state( Umn,Upxn,Upzn,Uen)
+
+#   EXCHANGE NEW AND OLD VARIABLES
+	Um = Umn; Upx = Upxn; Upz = Upzn; Ue = Uen;
+	pres = presn; vx = vxn; vz = vzn 
+
 	itt += 1      # advance itterations
 	time += dt # advance time
     
-#     #evolve the central point of the packet to track it
+#     evolve the central point of the packet to track it
 #     if itype eq 'packet' then begin
 #       indz = (zc-z0)/dz
 #       zc = zc + interpolate(cs,npx/2,indz)*dt
