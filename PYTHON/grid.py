@@ -19,8 +19,8 @@ class grid():
 	
 	def __init__(self,param):
 		# compute the increments of the step in each dimension
-		self.dx = (param.xf-param.x0)/param.nintx
-		self.dz = (param.zf-param.z0)/param.nintz
+		self.dx = (param.xf - param.x0)/param.nintx
+		self.dz = (param.zf - param.z0)/param.nintz
 		
 		# compute the total number of points (including guard cells)
 		# the points are in the center of the cells (centred lax-friedich scheme)

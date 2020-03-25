@@ -20,9 +20,9 @@
 #    OUTPUT:  VIA INIT_C COMMON:
 #           cs00 :   value of the speed of sound in equilibrium
 #           v00  :   value of the equilibrium velocity 
-#           Uminit:  array with the initial values of the density
-#           vvinit:  array with the initial values of the velocity
-#           presinit:array with the initial values of the pressure
+#           Um:  array with the initial values of the density
+#           vx_z:  arrays with the initial values of the velocity
+#           pres:array with the initial values of the pressure
 # ----------------------------------------------------------------------
 
 import numpy as np
@@ -50,31 +50,41 @@ class introut():
 				hz_vz 	= np.cos(2*np.pi*p.ondx*g.gridx/(p.xf-p.x0) + 2*np.pi*p.ondz*g.gridz/(p.zf-p.z0))*np.sin(np.arctan(p.ondz/p.ondx))
 				
 				# compute the densities and pressures with the vale of the equilibrium + the perturbation
-				self.Uminit   = p.Um00  + p.Um00       *p.ampl*hz
-				self.presinit = p.p00   + p.gamm*p.p00 *p.ampl*hz
+				self.Um   = p.Um00  + p.Um00       *p.ampl*hz
+				self.pres = p.p00   + p.gamm*p.p00 *p.ampl*hz
 				
 				# if the wave is in one axis make sure we dont have the other axis perturbation
 				if (p.ondz == 0):
-					self.vxinit   = self.v00 + self.cs00*ampl*hz_vx
-					self.vzinit   = np.zeros_like(hz_vz)
+					self.vx   = self.v00 + self.cs00*ampl*hz_vx
+					self.vz   = np.zeros_like(hz_vz)
 				elif (p.ondx == 0):
-					self.vxinit   = np.zeros_like(hz_vz)
-					self.vzinit   = self.v00 + self.cs00*p.ampl*hz_vz
+					self.vx   = np.zeros_like(hz_vz)
+					self.vz   = self.v00 + self.cs00*p.ampl*hz_vz
 				else:
-					self.vxinit   = self.v00 + self.cs00*p.ampl*hz_vx
-					self.vzinit   = self.v00 + self.cs00*p.ampl*hz_vz
+					self.vx   = self.v00 + self.cs00*p.ampl*hz_vx
+					self.vz   = self.v00 + self.cs00*p.ampl*hz_vz
 
 		# this calculates the sound speed array for the initial condition:
-		self.csinit = np.sqrt(p.gamm*self.presinit/self.Uminit)
+		self.cs = np.sqrt(p.gamm*self.pres/self.Um)
 
 	def plot_ic(self, param,grid, save=True):
-		
-		plt.figure()
-		plt.imshow(self.presinit)
 
-		if save:
-			print('saving plot')
+		fig, axs = plt.subplots(2, 2, sharex='col', sharey='row')
+		(ax1, ax2), (ax3, ax4) = axs
+		fig.suptitle('Pressure - Density \n Vz - Vx')
+		ax1.imshow(self.pres,extent=[param.x0,param.xf,param.z0,param.zf], aspect = 'equal')
+		ax2.imshow(self.Um , extent=[param.x0,param.xf,param.z0,param.zf], aspect = 'equal')
+		ax3.imshow(self.vz,  extent=[param.x0,param.xf,param.z0,param.zf], aspect = 'equal')
+		ax4.imshow(self.vx,  extent=[param.x0,param.xf,param.z0,param.zf], aspect = 'equal')
+
+		for ax in axs.flat:
+		    ax.label_outer()
+
+		if save: plt.savefig('figures/initial_conditions.png', dpi=200)
+
 		plt.show()
+		plt.close()
 
 	def save_ic(self):
-		print('save_ic...')
+		np.savez('data/initial_conditions.npz', 
+			pres=self.pres, Um=self.Um, vx=self.vx, vz=self.vz)
