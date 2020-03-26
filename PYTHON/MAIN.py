@@ -13,6 +13,7 @@ import grid as g
 from timestep import tstep
 import conversions as convers
 from boundary_conditions import boundc
+from advance import advance
 # --------------------------------------------------------------------
 # 			read the initial parameters of the simulation
 # --------------------------------------------------------------------
@@ -87,8 +88,6 @@ Um    	= init_cond.Um
 Ue   	= init_cond.pres/(param.gamm-1.) + init_cond.Um*(init_cond.vx**2. + init_cond.vz**2.)/2.
 Upx  	= init_cond.vx*init_cond.Um
 Upz  	= init_cond.vz*init_cond.Um
-# initialice the variables of the next iteration (n=new)
-Umn = Um; 	Uen = Ue; 	Upxn = Upx; 	Upzn = Upz 
 # the 'densities', in the sense of the conservation laws, 
 #      are 'Um', 'Upx', 'Upz' and  'Ue'. 
 
@@ -99,19 +98,19 @@ time = 0.
 # ------------------------------------------------------------
 while (itt < param.itmax and time < param.timef):
 
-#   CALCULATE FLUXES FROM DENSITIES ('fluxes' is the name of the subroutine) 
-	fmx,fmz, fpxx,fpxz,fpzz,fpzx, fex,fez = convers.state_to_fluxes(Um,Upx,Upz,Ue)
+#	CALCULATE FLUXES FROM DENSITIES ('fluxes' is the name of the subroutine) 
+	fmx,fmz, fpxx,fpxz,fpzz,fpzx, fex,fez = convers.dens_to_fluxes(Um,Upx,Upz,Ue)
 
-#   TIMESTEP 
+#	TIMESTEP 
 	dt=tstep(Um,Upx,Upz,cs, param, grid)
 	print(time)
 	if ((time+dt) > param.timef):
 		dt = param.timef-time
 
-#   ADVANCE ONE TIMESTEP using the chosen numerical scheme 
-#     advance, dt, Um,Upx,Upz,Ue, fmx,fmz,   fpxx,fpxz,fpzz,fpzx,  fex,fez, Umn,Upxn,Upzn,Uen
+#	ADVANCE ONE TIMESTEP using the chosen numerical scheme 
+	Umn,Upxn,Upzn,Uen = advance(dt, grid, Um,Upx,Upz,Ue,fmx,fmz,fpxx,fpxz,fpzz,fpzx,fex,fez)
 
-#   BOUNDARY CONDITIONS 
+#	BOUNDARY CONDITIONS 
 	Umn = boundc('left',Umn);	Umn = boundc('right',Umn);
 	Uen = boundc('left',Uen);	Uen = boundc('right',Uen);
 	Umn = boundc('up',Umn);		Umn = boundc('down',Umn);
@@ -122,10 +121,10 @@ while (itt < param.itmax and time < param.timef):
 	Upxn = boundc('up',Upxn);	Upxn = boundc('down',Upxn);
 	Upzn = boundc('up',Upzn);	Upzn = boundc('down',Upzn);     
 
-#   CALCULATE PRIMITIVE VARIABLES FROM THE DENSITIES    
-	vxn,vzn,presn = convers.fluxes_to_state( Umn,Upxn,Upzn,Uen)
+#	CALCULATE PRIMITIVE VARIABLES FROM THE DENSITIES    
+	vxn,vzn,presn = convers.dens_to_state( Umn,Upxn,Upzn,Uen)
 
-#   EXCHANGE NEW AND OLD VARIABLES
+#	EXCHANGE NEW AND OLD VARIABLES
 	Um = Umn; Upx = Upxn; Upz = Upzn; Ue = Uen;
 	pres = presn; vx = vxn; vz = vzn 
 

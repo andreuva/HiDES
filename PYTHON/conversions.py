@@ -18,7 +18,7 @@
 # ----------------------------------------------------------------------
 from parameters import gamm
 
-def fluxes_to_state(Um,Upx,Upz,Ue):
+def dens_to_state(Um,Upx,Upz,Ue):
 	
 	vx	 = Upx/Um
 	vz	 = Upz/Um
@@ -38,11 +38,10 @@ def fluxes_to_state(Um,Upx,Upz,Ue):
 #		OUTPUT:	the fluxes fmz, fpz, fez
 #
 # ----------------------------------------------------------------------
-
-def state_to_fluxes(Um,Upx,Upz,Ue):
+def dens_to_fluxes(Um,Upx,Upz,Ue):
 	
 	#compute the velocity and pressure for compute the fluxes
-	vx,vz,pres = fluxes_to_state(Um,Upx,Upz,Ue)  
+	vx,vz,pres = dens_to_state(Um,Upx,Upz,Ue)  
 
 	fmx = Upx								# mass flux
 	fmz = Upz
