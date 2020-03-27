@@ -14,6 +14,8 @@ from timestep import tstep
 import conversions as convers
 from boundary_conditions import boundc
 from advance import advance
+import representation as rp
+import state_class as sc
 # --------------------------------------------------------------------
 # 			read the initial parameters of the simulation
 # --------------------------------------------------------------------
@@ -34,10 +36,6 @@ if ((param.nintx <= 1) or (param.nintz <= 1)):
 	print( 'Nintx = ',param.nintx)
 	print( 'Nintz = ',param.nintz)
 	exit()
-
-# make sure that the wavenumbers are integers and are lees than the lenght
-ondx = int(param.ondx)
-ondz = int(param.ondz)
 
 if ((param.ondx > param.nintx) or (param.ondz > param.nintz)):
 	print( 'WARNING: The Number of wave N (ond(x,z))) in k = 2pi*ond(x,z)*/L should be Nint(x,z) or smaller' )
@@ -91,6 +89,9 @@ Upz  	= init_cond.vz*init_cond.Um
 # the 'densities', in the sense of the conservation laws, 
 #      are 'Um', 'Upx', 'Upz' and  'Ue'. 
 
+state = sc.state(param, init_cond)
+
+
 itt  = 0
 time = 0.
 # ------------------------------------------------------------
@@ -100,6 +101,7 @@ while (itt < param.itmax and time < param.timef):
 
 #	CALCULATE FLUXES FROM DENSITIES ('fluxes' is the name of the subroutine) 
 	fmx,fmz, fpxx,fpxz,fpzz,fpzx, fex,fez = convers.dens_to_fluxes(Um,Upx,Upz,Ue)
+	state = convers.dens_to_fluxes(Um,Upx,Upz,Ue)
 
 #	TIMESTEP 
 	dt=tstep(Um,Upx,Upz,cs, param, grid)
@@ -137,18 +139,17 @@ while (itt < param.itmax and time < param.timef):
 #       zc = zc + interpolate(cs,npx/2,indz)*dt
 #     endif
     
-# #   PLOT RESULTS 
-#     if itt mod plot_cad eq 0 or itt eq 0 or time ge timef then begin       
-#         if plttype eq 'cutz' then begin
-#           vv = sqrt(vx*vx + vz*vz)
-#           drawing,Um[fix(npx/2),*],pres[fix(npx/2),*],vv[fix(npx/2),*], zz, time, itt
-#         endif else if plttype eq 'cutx' then begin
-#           vv = sqrt(vx*vx + vz*vz)
-#           drawing,Um[*,fix(npz/2)],pres[*,fix(npz/2)],vv[*,fix(npz/2)], xx, time, itt
-#         endif else begin
-#           drawing_2d,Um,pres,vx,vz, time, itt, dt
-#         endelse
-#     endif
+#   PLOT RESULTS 
+	if (itt%param.plt_cad == 0 or itt == 0 or time >= param.timef) :      
+
+		# if plttype == 'cutz':
+		#   vv = np.sqrt(vx*vx + vz*vz)
+		#   rp.drawing,Um[fix(npx/2),*],pres[fix(npx/2),*],vv[fix(npx/2),*], zz, time, itt
+		# elif plttype == 'cutx':
+		#   vv = sqrt(vx*vx + vz*vz)
+		#   drawing,Um[*,fix(npz/2)],pres[*,fix(npz/2)],vv[*,fix(npz/2)], xx, time, itt
+		# else :
+		rp.drawing_2d(param, Um,pres,vx,vz, time, itt, dt)
     
 # #   STORE RESULTS - to store results in a file from time to time
 #     if itt mod store_cad eq 0 then begin
@@ -159,8 +160,7 @@ while (itt < param.itmax and time < param.timef):
     
 #     #make rain if the mode is selected:)
 #     rain, rain_flag, rain_cad, itt, Um,pres,vx,vz   ,Upx,Upz,Ue,cs
-    
-# endwhile
+
 # ------------------------------------------------------------
 # 		END OF BIG LOOP -- RESULTS AND LAST OUTPUTS
 # ------------------------------------------------------------

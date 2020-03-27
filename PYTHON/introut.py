@@ -45,9 +45,9 @@ class introut():
 			# or if it's the second mode, a cosine + a phase in the velocity
 			if (p.shape == 'cosine'):
 
-				hz 		= np.cos(2*np.pi*p.ondx*g.gridx/(p.xf-p.x0) + 2*np.pi*p.ondz*g.gridz/(p.zf-p.z0))
-				hz_vx 	= np.cos(2*np.pi*p.ondx*g.gridx/(p.xf-p.x0) + 2*np.pi*p.ondz*g.gridz/(p.zf-p.z0))*np.cos(np.arctan(p.ondz/p.ondx))
-				hz_vz 	= np.cos(2*np.pi*p.ondx*g.gridx/(p.xf-p.x0) + 2*np.pi*p.ondz*g.gridz/(p.zf-p.z0))*np.sin(np.arctan(p.ondz/p.ondx))
+				hz 		= np.cos(2.*np.pi*p.ondx*g.gridx/(p.xf-p.x0) + 2.*np.pi*p.ondz*g.gridz/(p.zf-p.z0))
+				hz_vx 	= np.cos(2.*np.pi*p.ondx*g.gridx/(p.xf-p.x0) + 2.*np.pi*p.ondz*g.gridz/(p.zf-p.z0))*np.cos(np.arctan(p.ondz/p.ondx))
+				hz_vz 	= np.cos(2.*np.pi*p.ondx*g.gridx/(p.xf-p.x0) + 2.*np.pi*p.ondz*g.gridz/(p.zf-p.z0))*np.sin(np.arctan(p.ondz/p.ondx))
 				
 				# compute the densities and pressures with the vale of the equilibrium + the perturbation
 				self.Um   = p.Um00  + p.Um00       *p.ampl*hz
@@ -55,7 +55,7 @@ class introut():
 				
 				# if the wave is in one axis make sure we dont have the other axis perturbation
 				if (p.ondz == 0):
-					self.vx   = self.v00 + self.cs00*ampl*hz_vx
+					self.vx   = self.v00 + self.cs00*p.ampl*hz_vx
 					self.vz   = np.zeros_like(hz_vz)
 				elif (p.ondx == 0):
 					self.vx   = np.zeros_like(hz_vz)
@@ -80,7 +80,7 @@ class introut():
 		for ax in axs.flat:
 		    ax.label_outer()
 
-		if save: plt.savefig('figures/initial_conditions.png', dpi=200)
+		if save: plt.savefig('figures/initial_conditions.png')
 
 		plt.show()
 		plt.close()
