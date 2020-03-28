@@ -44,25 +44,35 @@ class introut():
 			# if its a sound wave compute the initial conditions with a cosine
 			# or if it's the second mode, a cosine + a phase in the velocity
 			if (p.shape == 'cosine'):
-
 				hz 		= np.cos(2.*np.pi*p.ondx*g.gridx/(p.xf-p.x0) + 2.*np.pi*p.ondz*g.gridz/(p.zf-p.z0))
-				hz_vx 	= np.cos(2.*np.pi*p.ondx*g.gridx/(p.xf-p.x0) + 2.*np.pi*p.ondz*g.gridz/(p.zf-p.z0))*np.cos(np.arctan(p.ondz/p.ondx))
-				hz_vz 	= np.cos(2.*np.pi*p.ondx*g.gridx/(p.xf-p.x0) + 2.*np.pi*p.ondz*g.gridz/(p.zf-p.z0))*np.sin(np.arctan(p.ondz/p.ondx))
-				
-				# compute the densities and pressures with the vale of the equilibrium + the perturbation
-				self.Um   = p.Um00  + p.Um00       *p.ampl*hz
-				self.pres = p.p00   + p.gamm*p.p00 *p.ampl*hz
-				
-				# if the wave is in one axis make sure we dont have the other axis perturbation
-				if (p.ondz == 0):
-					self.vx   = self.v00 + self.cs00*p.ampl*hz_vx
-					self.vz   = np.zeros_like(hz_vz)
-				elif (p.ondx == 0):
-					self.vx   = np.zeros_like(hz_vz)
-					self.vz   = self.v00 + self.cs00*p.ampl*hz_vz
-				else:
-					self.vx   = self.v00 + self.cs00*p.ampl*hz_vx
-					self.vz   = self.v00 + self.cs00*p.ampl*hz_vz
+				hz_vx 	= np.cos(2.*np.pi*p.ondx*g.gridx/(p.xf-p.x0) + 2.*np.pi*p.ondz*g.gridz/(p.zf-p.z0))*np.cos(np.arctan2(p.ondz,p.ondx))
+				hz_vz 	= np.cos(2.*np.pi*p.ondx*g.gridx/(p.xf-p.x0) + 2.*np.pi*p.ondz*g.gridz/(p.zf-p.z0))*np.sin(np.arctan2(p.ondz,p.ondx))
+			elif (p.shape == 'second mode'):
+				hz 		= np.cos(2.*np.pi*p.ondx*g.gridx/(p.xf-p.x0) + 2.*np.pi*p.ondz*g.gridz/(p.zf-p.z0))
+				hz_vx 	= np.cos(2.*np.pi*p.ondx*g.gridx/(p.xf-p.x0) + 2.*np.pi*p.ondz*g.gridz/(p.zf-p.z0) + np.pi)*np.cos(np.arctan2(p.ondz,p.ondx))
+				hz_vz 	= np.cos(2.*np.pi*p.ondx*g.gridx/(p.xf-p.x0) + 2.*np.pi*p.ondz*g.gridz/(p.zf-p.z0) + np.pi)*np.sin(np.arctan2(p.ondz,p.ondx))
+			else:
+				print('ERROR : there is no type '+p.shape+' for initial conditions type '+p.itype)
+				exit()
+
+			# compute the densities and pressures with the vale of the equilibrium + the perturbation
+			self.Um   = p.Um00  + p.Um00       *p.ampl*hz
+			self.pres = p.p00   + p.gamm*p.p00 *p.ampl*hz
+			
+			# if the wave is in one axis make sure we dont have the other axis perturbation
+			if (p.ondz == 0):
+				self.vx   = self.v00 + self.cs00*p.ampl*hz_vx
+				self.vz   = np.zeros_like(hz_vz)
+			elif (p.ondx == 0):
+				self.vx   = np.zeros_like(hz_vz)
+				self.vz   = self.v00 + self.cs00*p.ampl*hz_vz
+			else:
+				self.vx   = self.v00 + self.cs00*p.ampl*hz_vx
+				self.vz   = self.v00 + self.cs00*p.ampl*hz_vz
+
+		else:
+			print('ERROR : No initial conditions named '+p.itype)
+			exit()
 
 		# this calculates the sound speed array for the initial condition:
 		self.cs = np.sqrt(p.gamm*self.pres/self.Um)
@@ -71,18 +81,23 @@ class introut():
 
 		fig, axs = plt.subplots(2, 2, sharex='col', sharey='row')
 		(ax1, ax2), (ax3, ax4) = axs
-		fig.suptitle('Pressure - Density \n Vz - Vx')
-		ax1.imshow(self.pres,extent=[param.x0,param.xf,param.z0,param.zf], aspect = 'equal')
-		ax2.imshow(self.Um , extent=[param.x0,param.xf,param.z0,param.zf], aspect = 'equal')
-		ax3.imshow(self.vz,  extent=[param.x0,param.xf,param.z0,param.zf], aspect = 'equal')
-		ax4.imshow(self.vx,  extent=[param.x0,param.xf,param.z0,param.zf], aspect = 'equal')
+		fig.suptitle('Pressure - Density \n Vx - Vz')
+		im1 = ax1.imshow(self.pres,extent=[param.x0,param.xf,param.z0,param.zf], aspect = 'equal')
+		im2 = ax2.imshow(self.Um 	,extent=[param.x0,param.xf,param.z0,param.zf], aspect = 'equal')
+		im3 = ax3.imshow(self.vx 	,extent=[param.x0,param.xf,param.z0,param.zf], aspect = 'equal')
+		im4 = ax4.imshow(self.vz 	,extent=[param.x0,param.xf,param.z0,param.zf], aspect = 'equal')
+
+		fig.colorbar(im1, ax=ax1)
+		fig.colorbar(im2, ax=ax2)
+		fig.colorbar(im3, ax=ax3)
+		fig.colorbar(im4, ax=ax4)
 
 		for ax in axs.flat:
 		    ax.label_outer()
 
 		if save: plt.savefig('figures/initial_conditions.png')
 
-		plt.show()
+		# plt.show()
 		plt.close()
 
 	def save_ic(self):

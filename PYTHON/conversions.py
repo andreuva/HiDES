@@ -25,7 +25,6 @@ def dens_to_state(Um,Upx,Upz,Ue):
 	pres = (gamm-1.)*(Ue - (Upx*Upx + Upz*Upz)/(2.*Um))
 
 	return	vx,vz,pres
-
 # ----------------------------------------------------------------------
 # 							ROUTINE FLUXES
 #		Author : Andres Vicente Arevalo 	Date: 25-03-2020
@@ -39,7 +38,6 @@ def dens_to_state(Um,Upx,Upz,Ue):
 #
 # ----------------------------------------------------------------------
 def dens_to_fluxes(Um,Upx,Upz,Ue):
-	
 	#compute the velocity and pressure for compute the fluxes
 	vx,vz,pres = dens_to_state(Um,Upx,Upz,Ue)  
 

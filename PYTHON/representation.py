@@ -1,14 +1,36 @@
+import numpy as np
 import matplotlib.pyplot as plt 
 
-def drawing_2d(param, Um,pres,vx,vz, time, itt, dt):
+def drawing_2d(init_cond, param, Um,pres,vx,vz, time, itt, dt):
+
+	# computing the curves to draw normalized perturbed ones
+	umnorm = (Um-param.Um00)/param.Um00 
+	pnorm  = (pres-param.p00)/param.p00
+	vxnorm  = vx/init_cond.cs00
+	vznorm  = vz/init_cond.cs00
+
+	# the amplituds must be equal except for a gamma factor 
+	# so we compute one initial amplitud to use it as a frame
+	ampini = np.max(np.abs((init_cond.Um - param.Um00)/param.Um00))
+	# the initial velocity makes the y axes in the velocity to move
+	# towards another equilibrium position [v0-amp,v0+amp] so we compute them
+	v_ampini = init_cond.vx/init_cond.cs00
+	# med   = (max(v_ampini) + min(v_ampini))/2
+	# range =  max(v_ampini) - min(v_ampini)
+    
 
 	fig, axs = plt.subplots(2, 2, sharex='col', sharey='row')
 	(ax1, ax2), (ax3, ax4) = axs
-	fig.suptitle('Pressure - Density \n Vz - Vx')
-	ax1.imshow(pres,extent=[param.x0,param.xf,param.z0,param.zf], aspect = 'equal')
-	ax2.imshow(Um , extent=[param.x0,param.xf,param.z0,param.zf], aspect = 'equal')
-	ax3.imshow(vz,  extent=[param.x0,param.xf,param.z0,param.zf], aspect = 'equal')
-	ax4.imshow(vx,  extent=[param.x0,param.xf,param.z0,param.zf], aspect = 'equal')
+	fig.suptitle('Pressure - Density \n Vx - Vz')
+	im1 = ax1.imshow(pnorm,extent=[param.x0,param.xf,param.z0,param.zf], aspect = 'equal')
+	im2 = ax2.imshow(umnorm , extent=[param.x0,param.xf,param.z0,param.zf], aspect = 'equal')
+	im3 = ax3.imshow(vxnorm,  extent=[param.x0,param.xf,param.z0,param.zf], aspect = 'equal')
+	im4 = ax4.imshow(vznorm,  extent=[param.x0,param.xf,param.z0,param.zf], aspect = 'equal')
+
+	fig.colorbar(im1, ax=ax1)
+	fig.colorbar(im2, ax=ax2)
+	fig.colorbar(im3, ax=ax3)
+	fig.colorbar(im4, ax=ax4)
 
 	for ax in axs.flat:
 	    ax.label_outer()

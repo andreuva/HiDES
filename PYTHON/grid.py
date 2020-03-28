@@ -12,7 +12,6 @@
 #				zf:    higher end of the range in the z dimension
 # 				nintz: number of intervals in the z range
 # ----------------------------------------------------------------------
-
 import numpy as np 
 
 class grid():

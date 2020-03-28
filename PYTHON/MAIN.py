@@ -15,12 +15,10 @@ import conversions as convers
 from boundary_conditions import boundc
 from advance import advance
 import representation as rp
-import state_class as sc
 # --------------------------------------------------------------------
 # 			read the initial parameters of the simulation
 # --------------------------------------------------------------------
 import parameters as param
-
 # --------------------------------------------------------------------
 # 			Check inconsintency in the initial parameters
 # --------------------------------------------------------------------
@@ -39,9 +37,10 @@ if ((param.nintx <= 1) or (param.nintz <= 1)):
 
 if ((param.ondx > param.nintx) or (param.ondz > param.nintz)):
 	print( 'WARNING: The Number of wave N (ond(x,z))) in k = 2pi*ond(x,z)*/L should be Nint(x,z) or smaller' )
-	print( 'ondx = ',param.ondx,'	nintx = ',param.nintx)   ;   print( 'Nintz = ',param.ondz,'  nintz = ',param.nintz)
+	print( 'ondx = ',param.ondx,'	nintx = ',param.nintx)   ;   print( 'ondz = ',param.ondz,'  nintz = ',param.nintz)
 	print( 'ondx and ondz has been redefined as nintx and nintz.' )
-	ondx = nintx ; ondz = nintz 
+	param.ondx = param.nintx ; param.ondz = param.nintz 
+	print( 'ondx = ',param.ondx,'	nintx = ',param.nintx)   ;   print( 'ondz = ',param.ondz,'  nintz = ',param.nintz)
 
 #check the boundary conditions and puts the 'periodic' as default
 if ((param.boundcond != 'periodic') and (param.boundcond != '0deriv')):
@@ -69,10 +68,9 @@ grid = g.grid(param)
 # --------------------------------------------------------------
 #the routine initrout sets up the initial condition.
 init_cond = ic.introut(param,grid)   
-
 # plot and store the initial conditions
 init_cond.plot_ic(param,grid, save=True)
-init_cond.save_ic()
+# init_cond.save_ic()
 # ------------------------------------------------------------
 # 			declare and/or initialize variables
 # ------------------------------------------------------------
@@ -86,44 +84,36 @@ Um    	= init_cond.Um
 Ue   	= init_cond.pres/(param.gamm-1.) + init_cond.Um*(init_cond.vx**2. + init_cond.vz**2.)/2.
 Upx  	= init_cond.vx*init_cond.Um
 Upz  	= init_cond.vz*init_cond.Um
-# the 'densities', in the sense of the conservation laws, 
-#      are 'Um', 'Upx', 'Upz' and  'Ue'. 
-
-state = sc.state(param, init_cond)
-
+# the 'densities', in the sense of the conservation laws,
+#      are 'Um', 'Upx', 'Upz' and  'Ue'.
 
 itt  = 0
 time = 0.
+
 # ------------------------------------------------------------
 # 						MAIN LOOP
 # ------------------------------------------------------------
 while (itt < param.itmax and time < param.timef):
 
-#	CALCULATE FLUXES FROM DENSITIES ('fluxes' is the name of the subroutine) 
+#	CALCULATE FLUXES FROM DENSITIES ('fluxes' is the name of the subroutine)
 	fmx,fmz, fpxx,fpxz,fpzz,fpzx, fex,fez = convers.dens_to_fluxes(Um,Upx,Upz,Ue)
-	state = convers.dens_to_fluxes(Um,Upx,Upz,Ue)
 
-#	TIMESTEP 
+#	TIMESTEP
 	dt=tstep(Um,Upx,Upz,cs, param, grid)
-	print(time)
+	print('time = ',np.round(time,3) ,'\t itterations = ',itt,'\t dt = ',dt)
 	if ((time+dt) > param.timef):
 		dt = param.timef-time
 
 #	ADVANCE ONE TIMESTEP using the chosen numerical scheme 
 	Umn,Upxn,Upzn,Uen = advance(dt, grid, Um,Upx,Upz,Ue,fmx,fmz,fpxx,fpxz,fpzz,fpzx,fex,fez)
 
-#	BOUNDARY CONDITIONS 
-	Umn = boundc('left',Umn);	Umn = boundc('right',Umn);
-	Uen = boundc('left',Uen);	Uen = boundc('right',Uen);
-	Umn = boundc('up',Umn);		Umn = boundc('down',Umn);
-	Uen = boundc('up',Uen);		Uen = boundc('down',Uen);
+#	BOUNDARY CONDITIONS
+	Umn = boundc(Umn)
+	Uen = boundc(Uen)
+	Upxn = boundc(Upxn)
+	Upzn = boundc(Upzn)
 
-	Upxn = boundc('left',Upxn);	Upxn = boundc('right',Upxn);
-	Upzn = boundc('left',Upzn);	Upzn = boundc('right',Upzn);
-	Upxn = boundc('up',Upxn);	Upxn = boundc('down',Upxn);
-	Upzn = boundc('up',Upzn);	Upzn = boundc('down',Upzn);     
-
-#	CALCULATE PRIMITIVE VARIABLES FROM THE DENSITIES    
+#	CALCULATE PRIMITIVE VARIABLES FROM THE DENSITIES
 	vxn,vzn,presn = convers.dens_to_state( Umn,Upxn,Upzn,Uen)
 
 #	EXCHANGE NEW AND OLD VARIABLES
@@ -132,35 +122,18 @@ while (itt < param.itmax and time < param.timef):
 
 	itt += 1      # advance itterations
 	time += dt # advance time
-    
-#     evolve the central point of the packet to track it
-#     if itype eq 'packet' then begin
-#       indz = (zc-z0)/dz
-#       zc = zc + interpolate(cs,npx/2,indz)*dt
-#     endif
-    
-#   PLOT RESULTS 
+
+#   PLOT RESULTS
 	if (itt%param.plt_cad == 0 or itt == 0 or time >= param.timef) :      
 
-		# if plttype == 'cutz':
-		#   vv = np.sqrt(vx*vx + vz*vz)
-		#   rp.drawing,Um[fix(npx/2),*],pres[fix(npx/2),*],vv[fix(npx/2),*], zz, time, itt
-		# elif plttype == 'cutx':
-		#   vv = sqrt(vx*vx + vz*vz)
-		#   drawing,Um[*,fix(npz/2)],pres[*,fix(npz/2)],vv[*,fix(npz/2)], xx, time, itt
-		# else :
-		rp.drawing_2d(param, Um,pres,vx,vz, time, itt, dt)
-    
-# #   STORE RESULTS - to store results in a file from time to time
-#     if itt mod store_cad eq 0 then begin
-#       save,/VARIABLES, FILENAME = 'results/states/estate_time_' $
-#         + strtrim(string(time,form='(f7.2)'),2)+'.sav'
-#       WRITE_PNG, 'results/plots/plot_time'+strtrim(string(itt+1d4,form='(f7.1)'),2)+'.png', TVRD(/TRUE)
-#     endif
-    
-#     #make rain if the mode is selected:)
-#     rain, rain_flag, rain_cad, itt, Um,pres,vx,vz   ,Upx,Upz,Ue,cs
-
+		if param.plt_type == 'cutz':
+			vv = np.sqrt(vx*vx + vz*vz)
+			# rp.drawing(Um[int(npx/2),:],pres[int(npx/2),:],vv[int(npx/2),:],grid.xx)
+		elif param.plt_type == 'cutx':
+			vv = sqrt(vx*vx + vz*vz)
+			# rp.drawing(Um[:,int(npz/2)],pres[:,int(npz/2)],vv[:,fix(npz/2)],grid.zz)
+		else :
+			rp.drawing_2d(init_cond, param, Um,pres,vx,vz, time, itt, dt)
 # ------------------------------------------------------------
 # 		END OF BIG LOOP -- RESULTS AND LAST OUTPUTS
 # ------------------------------------------------------------

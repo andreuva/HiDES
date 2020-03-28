@@ -16,9 +16,8 @@ import numpy as np
 def  tstep(Um,Upx,Upz,cs, param, grid):
 
 	#compute the characteristic velocities
-	vcharac1 = np.abs(np.sqrt(Upx*Upx + Upz*Upz)/Um + cs)
-	vcharac2 = np.abs(np.sqrt(Upx*Upx + Upz*Upz)/Um - cs)
-
+	vcharac1 = np.abs(np.sqrt(np.square(Upx) + np.square(Upz))/Um + cs)
+	vcharac2 = np.abs(np.sqrt(np.square(Upx) + np.square(Upz))/Um - cs)
 	#compute the proper delta t with the cflparam
 	dt = param.cflparam * np.min([grid.dx,grid.dz]) / np.max([vcharac1, vcharac2])
 
